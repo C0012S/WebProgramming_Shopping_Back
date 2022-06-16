@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class ShoppingService {
 
+	// ≈“ «¡∑Œ¡ß∆Æ 1 & ≈“ «¡∑Œ¡ß∆Æ 2 & ≈“ «¡∑Œ¡ß∆Æ 3
 	@Autowired
 	private ShoppingRepository repository;
 	
@@ -32,10 +33,11 @@ public class ShoppingService {
 		return repository.findByTitle(title);
 	}
 */	
-	// ≈“ «¡∑Œ¡ß∆Æ 2 - retrieve & search
+	// ≈“ «¡∑Œ¡ß∆Æ 2 & ≈“ «¡∑Œ¡ß∆Æ 3 - retrieve
 	public List<ShoppingEntity> retrieve(final String userId) {
 		return repository.findByUserId(userId);
 	}
+	// ≈“ «¡∑Œ¡ß∆Æ 2 & ≈“ «¡∑Œ¡ß∆Æ 3 - search
 	public List<ShoppingEntity> search(final String title) {
 		return repository.findByTitle(title);
 	}
@@ -55,7 +57,7 @@ public class ShoppingService {
 		return retrieve(entity.getTitle());
 	}
 */	
-	// ≈“ «¡∑Œ¡ß∆Æ 2 - update
+	// ≈“ «¡∑Œ¡ß∆Æ 2 & ≈“ «¡∑Œ¡ß∆Æ 3 - update
 	public List<ShoppingEntity> update(final ShoppingEntity entity) {
 		validate(entity);
 		Optional<ShoppingEntity> original = repository.findById(entity.getId());
@@ -69,6 +71,7 @@ public class ShoppingService {
 		return retrieve(entity.getUserId());
 	}
 
+	// ≈“ «¡∑Œ¡ß∆Æ 1 & ≈“ «¡∑Œ¡ß∆Æ 2 & ≈“ «¡∑Œ¡ß∆Æ 3
 	public List<ShoppingEntity> delete(final ShoppingEntity entity) {
 		validate(entity);
 

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +25,9 @@ public class ShoppingController {
 	
 	@Autowired
 	private ShoppingService service;
-	
+
+/*	
+	// 텀 프로젝트 1 & 텀 프로젝트 2 - CREATE
 	@PostMapping
 	public ResponseEntity<?> createShopping(@RequestBody ShoppingDTO dto) {
 		try {
@@ -34,6 +37,26 @@ public class ShoppingController {
 			ShoppingEntity entity = ShoppingDTO.toEntity(dto);
 			entity.setId(null);
 //			entity.setUserId(temporaryUserId);
+			List<ShoppingEntity> entities = service.create(entity);
+			List<ShoppingDTO> dtos = entities.stream().map(ShoppingDTO::new).collect(Collectors.toList());
+			ResponseDTO<ShoppingDTO> response = ResponseDTO.<ShoppingDTO>builder().data(dtos).build();
+
+			return ResponseEntity.ok().body(response);			
+		} catch(Exception e) {
+			String error = e.getMessage();
+			ResponseDTO<ShoppingDTO> response = ResponseDTO.<ShoppingDTO>builder().error(error).build();
+			
+			return ResponseEntity.badRequest().body(response);
+		}
+	}
+*/	
+	// 텀 프로젝트 3 - CREATE
+	@PostMapping
+	public ResponseEntity<?> createShopping(@AuthenticationPrincipal String userId, @RequestBody ShoppingDTO dto) {
+		try {
+			ShoppingEntity entity = ShoppingDTO.toEntity(dto);
+			entity.setId(null);
+			entity.setUserId(userId); // @AuthenticationPrincipal에서 넘어온 userId로 설정한다.
 			List<ShoppingEntity> entities = service.create(entity);
 			List<ShoppingDTO> dtos = entities.stream().map(ShoppingDTO::new).collect(Collectors.toList());
 			ResponseDTO<ShoppingDTO> response = ResponseDTO.<ShoppingDTO>builder().data(dtos).build();
@@ -60,6 +83,7 @@ public class ShoppingController {
 		return ResponseEntity.ok().body(response);
 	}
 */	
+/*	
 	// 텀 프로젝트 2 - retrieve
 	@GetMapping
 	public ResponseEntity<?> retrieveShoppingList() {
@@ -84,7 +108,32 @@ public class ShoppingController {
 
 		return ResponseEntity.ok().body(response);
 	}
-	
+*/	
+	// 텀 프로젝트 3 - retrieve
+	@GetMapping
+	public ResponseEntity<?> retrieveShoppingList(@AuthenticationPrincipal String userId) {
+		List<ShoppingEntity> entities = service.retrieve(userId);
+		List<ShoppingDTO> dtos = entities.stream().map((e)->(new ShoppingDTO(e))).collect(Collectors.toList());
+		ResponseDTO<ShoppingDTO> response = ResponseDTO.<ShoppingDTO>builder().data(dtos).build();
+
+		return ResponseEntity.ok().body(response);
+	}
+	// 텀 프로젝트 3 - search
+	@PostMapping("/search")
+	public ResponseEntity<?> searchShoppingList(@AuthenticationPrincipal String userId, @RequestBody ShoppingDTO dto) {
+		ShoppingEntity entity = ShoppingDTO.toEntity(dto);
+		entity.setUserId(userId);
+		String title = entity.getTitle();
+		
+		List<ShoppingEntity> entities = service.search(title);
+		List<ShoppingDTO> dtos = entities.stream().map((e)->(new ShoppingDTO(e))).collect(Collectors.toList());
+		ResponseDTO<ShoppingDTO> response = ResponseDTO.<ShoppingDTO>builder().data(dtos).build();
+
+		return ResponseEntity.ok().body(response);
+	}
+
+/*	
+	// 텀 프로젝트 1 & 텀 프로젝트 2 - UPDATE
 	@PutMapping
 	public ResponseEntity<?> updateShopping(@RequestBody ShoppingDTO dto) {
 //		String temporaryUserId = "Sang Hee Park";
@@ -92,6 +141,18 @@ public class ShoppingController {
 		
 		ShoppingEntity entity = ShoppingDTO.toEntity(dto);
 //		entity.setUserId(temporaryUserId);
+		List<ShoppingEntity> entities = service.update(entity);
+		List<ShoppingDTO> dtos = entities.stream().map((e)->(new ShoppingDTO(e))).collect(Collectors.toList());
+		ResponseDTO<ShoppingDTO> response = ResponseDTO.<ShoppingDTO>builder().data(dtos).build();
+
+		return ResponseEntity.ok().body(response);		
+	}
+*/	
+	// 텀 프로젝트 3 - UPDATE
+	@PutMapping
+	public ResponseEntity<?> updateShopping(@AuthenticationPrincipal String userId, @RequestBody ShoppingDTO dto) {
+		ShoppingEntity entity = ShoppingDTO.toEntity(dto);
+		entity.setUserId(userId);
 		List<ShoppingEntity> entities = service.update(entity);
 		List<ShoppingDTO> dtos = entities.stream().map((e)->(new ShoppingDTO(e))).collect(Collectors.toList());
 		ResponseDTO<ShoppingDTO> response = ResponseDTO.<ShoppingDTO>builder().data(dtos).build();
@@ -122,6 +183,7 @@ public class ShoppingController {
 		}
 	}
 */	
+/*	
 	// 텀 프로젝트 2 - DELETE
 	@DeleteMapping
 	public ResponseEntity<?> deleteShopping(@RequestBody ShoppingDTO dto) {
@@ -130,6 +192,33 @@ public class ShoppingController {
 			List<ShoppingEntity> delete_entities = null; // 삭제 후 남은 ShoppingEntity List
 			
 			ShoppingEntity entity = ShoppingDTO.toEntity(dto);
+			List<ShoppingEntity> entities = service.search(entity.getTitle());
+			for (int i = 0; i < entities.size(); i++) {
+				equal_entity = entities.get(i);
+				delete_entities = service.delete(equal_entity);
+			}
+			
+			List<ShoppingDTO> dtos = delete_entities.stream().map((e)->(new ShoppingDTO(e))).collect(Collectors.toList());
+			ResponseDTO<ShoppingDTO> response = ResponseDTO.<ShoppingDTO>builder().data(dtos).build();
+
+			return ResponseEntity.ok().body(response);
+		} catch (Exception e) {
+			String error = e.getMessage();
+			ResponseDTO<ShoppingDTO> response = ResponseDTO.<ShoppingDTO>builder().error(error).build();
+			
+			return ResponseEntity.badRequest().body(response);
+		}
+	}
+*/	
+	// 텀 프로젝트 3 - DELETE
+	@DeleteMapping
+	public ResponseEntity<?> deleteShopping(@AuthenticationPrincipal String userId, @RequestBody ShoppingDTO dto) {
+		try {
+			ShoppingEntity equal_entity; // 제목이 같은 ShoppingEntity
+			List<ShoppingEntity> delete_entities = null; // 삭제 후 남은 ShoppingEntity List
+			
+			ShoppingEntity entity = ShoppingDTO.toEntity(dto);
+			entity.setUserId(userId);
 			List<ShoppingEntity> entities = service.search(entity.getTitle());
 			for (int i = 0; i < entities.size(); i++) {
 				equal_entity = entities.get(i);
