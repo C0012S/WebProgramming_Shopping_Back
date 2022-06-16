@@ -23,6 +23,9 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 	
+	@Autowired
+	private TokenProvider tokenProvider;
+	
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
 		try {
@@ -60,10 +63,14 @@ public class UserController {
 				userDTO.getPassword());
 		
 		if(user != null) {
+			// 토큰 생성
+			final String token = tokenProvider.create(user);
+			
 			final UserDTO responseUserDTO = UserDTO.builder()
 					.email(user.getEmail())
 					.id(user.getId())
 					.username(user.getUsername()) //
+					.token(token)
 					.build();
 			
 			return ResponseEntity.ok().body(responseUserDTO);
